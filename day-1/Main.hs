@@ -1,64 +1,29 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import Control.Monad (liftM)
 import Data.Text (pack, splitOn, unpack)
 
-findMatchPartTwo :: [Int] -> Maybe Int
-findMatchPartTwo list =
-  indexedFoldr
-    ( \(value, idx) match ->
-        case match of
-          Just m -> Just m
-          Nothing ->
-            ( \siblingList ->
-                indexedFoldr
-                  ( \(_, siblingIdx) match ->
-                      case match of
-                        Just m -> Just m
-                        Nothing ->
-                          (* value) <$> findMatchPartOne (getSiblings siblingIdx siblingList) (2020 - value)
-                  )
-                  Nothing
-                  siblingList
-            )
-              $ getSiblings idx list -- don't compare the value to itself
-    )
-    Nothing
-    list
+findMatchPartTwo :: Int -> [Int] -> Maybe Int
+findMatchPartTwo total (x : xs) =
+  case (* x) <$> findMatchPartOne (total - x) xs of
+    Just m -> Just m
+    Nothing -> findMatchPartTwo total xs
+findMatchPartTwo _ [] = Nothing
 
-findMatchPartOne :: [Int] -> Int -> Maybe Int
-findMatchPartOne list total =
-  indexedFoldr
-    ( \(value, idx) match ->
-        case match of
-          Just m -> Just m
-          Nothing ->
-            join $
-              ((!!? 0) . filter isJust) $ -- then take the first match
-                (\v -> if v + value == total then Just (v * value) else Nothing) -- evaluate if we add up to 2020
-                  <$> getSiblings idx list -- don't compare the value to itself
-    )
-    Nothing
-    list
-
-getSiblings :: Int -> [a] -> [a]
-getSiblings index =
-  (\(x, xs) -> x <> drop 1 xs) . splitAt index
-
-indexedFoldr :: ((a, Int) -> b -> b) -> b -> [a] -> b
-indexedFoldr fn a =
-  fst
-    . foldr
-      (\cur (acc, idx) -> (fn (cur, idx) acc, idx + 1))
-      (a, 0)
+findMatchPartOne :: Int -> [Int] -> Maybe Int
+findMatchPartOne total (x : xs) =
+  fromMaybe (findMatchPartOne total xs) $
+    ((!!? 0) . filter isJust) $
+      (\val -> if x + val == total then Just (x * val) else Nothing)
+        <$> xs
+findMatchPartOne _ [] = Nothing
 
 dayOnePartTwo :: [Int] -> IO ()
 dayOnePartTwo inputs =
-  putStrLn $ maybe "Could not find match!" show (findMatchPartTwo inputs)
+  putStrLn $ maybe "Could not find match!" show (findMatchPartTwo 2020 inputs)
 
 dayOnePartOne :: [Int] -> IO ()
 dayOnePartOne inputs =
-  putStrLn $ maybe "Could not find match!" show (findMatchPartOne inputs 2020)
+  putStrLn $ maybe "Could not find match!" show (findMatchPartOne 2020 inputs)
 
 parseInput :: Text -> Maybe [Int]
 parseInput =
@@ -67,7 +32,7 @@ parseInput =
 
 getInput :: IO (Maybe [Int])
 getInput =
-  liftM parseInput $ pack <$> readFile "./input.txt"
+  fmap parseInput $ pack <$> readFile "./input.txt"
 
 main :: IO ()
 main = do
