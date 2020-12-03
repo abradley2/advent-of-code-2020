@@ -16,8 +16,8 @@ countCharacters c (x : xs) = countCharacters c xs + if x == c then 1 else 0
 
 countPositions :: Char -> [Char] -> [Int] -> Int
 countPositions _ _ [] = 0
-countPositions char str (idx : next) =
-  countPositions char str next + if maybe False (== char) (str !!? idx) then 1 else 0
+countPositions char str (pos : next) =
+  countPositions char str next + if maybe False (== char) (str !!? (pos - 1)) then 1 else 0
 
 validateInput :: InputLine -> Bool
 validateInput input =
@@ -64,7 +64,7 @@ lineParser = do
   Parsec.many $ Parsec.oneOf " :"
   content_ <- Parsec.many1 $ Parsec.noneOf "\n"
   return $ InputLine range_ charRequirement_ content_
--- hi
+
 inputParser :: Parser [InputLine]
 inputParser = do
   x <- lineParser
