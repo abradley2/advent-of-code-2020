@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-import qualified Data.Text as T (pack, unpack)
-import Text.ParserCombinators.Parsec as Parsec
+import Text.ParserCombinators.Parsec as P
 
 data InputLine = InputLine
   { range :: (Int, Int),
@@ -41,10 +40,10 @@ solvePartTwo =
 
 main :: IO ()
 main = do
-  rawInput <- T.pack <$> readFile "./input.txt"
+  rawInput <- readFile "./input.txt"
   putStrLn "Part (1) or (2)?"
   dayNum <- getLine
-  case (dayNum, Parsec.parse inputParser "(unknown)" (T.unpack rawInput)) of
+  case (dayNum, P.parse inputParser "input.txt" rawInput) of
     ("1", Right input) -> solvePartOne input
     ("2", Right input) -> solvePartTwo input
     (_, Right _) -> putStrLn "Invalid part, enter '1' or '2'"
@@ -54,19 +53,19 @@ lineParser :: Parser InputLine
 lineParser = do
   range_ <-
     ( do
-        min_ <- Parsec.many Parsec.digit >>= maybe (fail "Failed to parse int") pure . readMaybe
-        Parsec.char '-'
-        max_ <- Parsec.many Parsec.digit >>= maybe (fail "Failed to parse int") pure . readMaybe
+        min_ <- P.many P.digit >>= maybe (fail "Failed to parse int") pure . readMaybe
+        P.char '-'
+        max_ <- P.many P.digit >>= maybe (fail "Failed to parse int") pure . readMaybe
         return (min_, max_)
       )
-  Parsec.spaces
-  charRequirement_ <- Parsec.noneOf ":"
-  Parsec.many $ Parsec.oneOf " :"
-  content_ <- Parsec.many1 $ Parsec.noneOf "\n"
+  P.spaces
+  charRequirement_ <- P.noneOf ":"
+  P.many $ P.oneOf " :"
+  content_ <- P.many1 $ P.noneOf "\n"
   return $ InputLine range_ charRequirement_ content_
 
 inputParser :: Parser [InputLine]
 inputParser = do
   x <- lineParser
-  xs <- (Parsec.char '\n' >> inputParser) Parsec.<|> return []
+  xs <- (P.char '\n' >> inputParser) P.<|> return []
   return (x : xs)
