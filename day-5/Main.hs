@@ -38,9 +38,10 @@ solvePartOne =
 
 findMatches :: [Int] -> [Int]
 findMatches seatIds =
-  (+1) <$> filter
-    ( \cur -> elem (cur + 2) seatIds && (not $ elem (cur + 1) seatIds))
-    seatIds
+  (+ 1)
+    <$> filter
+      (\cur -> elem (cur + 2) seatIds && (not $ elem (cur + 1) seatIds))
+      seatIds
 
 solvePartTwo :: [[Partition]] -> IO ()
 solvePartTwo input =
