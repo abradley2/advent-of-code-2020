@@ -8,16 +8,10 @@ import Text.ParserCombinators.Parsec as P
 type SeatingChart = [(Int, [Int])]
 
 splitLeft :: [a] -> [a]
-splitLeft l =
-  fst $ splitAt (floor $ len / 2) l
-  where
-    len = fromIntegral $ length l :: Float
+splitLeft l = take (floor $ fromIntegral (length l) / 2) l
 
 splitRight :: [a] -> [a]
-splitRight l =
-  snd $ splitAt (floor $ len / 2) l
-  where
-    len = fromIntegral $ length l :: Float
+splitRight l = drop (floor $ fromIntegral (length l) / 2) l
 
 seats :: SeatingChart
 seats = (,[0 .. 7]) <$> [0 .. 127]
@@ -40,7 +34,7 @@ getSeat seats (x : xs) =
 
 solvePartOne :: [[Partition]] -> IO ()
 solvePartOne =
-  print . fmap (foldr (\x y -> if x > y then x else y) 0) . sequence . fmap (getSeat seats)
+  print . fmap (foldr (\x y -> if x > y then x else y) 0) . mapM (getSeat seats)
 
 findMatches :: [Int] -> [Int]
 findMatches seatIds =
@@ -50,8 +44,8 @@ findMatches seatIds =
 
 solvePartTwo :: [[Partition]] -> IO ()
 solvePartTwo input =
-  let seatIds = sequence $ fmap (getSeat seats) input
-   in putStrLn $ show $ findMatches <$> rightToMaybe seatIds
+  let seatIds = mapM (getSeat seats) input
+   in print $ findMatches <$> rightToMaybe seatIds
 
 main :: IO ()
 main = do
